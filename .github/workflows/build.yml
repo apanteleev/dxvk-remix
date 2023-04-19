@@ -1,0 +1,42 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+
+    steps:
+    - name: Setup variables
+      uses: actions/github-script@v6
+      with:
+        script: core.exportVariable('GITHUB_SHA_SHORT', context.sha.substring(0, 7))
+
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        
+    - name: Setup Vulkan SDK
+      run: choco install vulkan-sdk -y
+
+    - name: Setup Meson
+      run: pip install meson==0.62.1
+    
+    - name: Build
+      shell: pwsh
+      run: |
+        Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+        .\build_dxvk_all_ninja.ps1
+    
+    - name: Upload binaries
+      uses: actions/upload-artifact@v3
+      with:
+        name: dxvk-remix-${{env.GITHUB_SHA_SHORT}}
+        path: |
+          _Comp64*\src\d3d9\d3d9.dll
+          _Comp64*\src\d3d9\d3d9.pdb
