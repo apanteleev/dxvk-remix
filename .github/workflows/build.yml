@@ -10,6 +10,14 @@ jobs:
   build-windows:
     runs-on: windows-2022
 
+    strategy:
+      matrix:
+        include:
+          - build-flavour: debug
+            output-subdir: _Comp64Debug
+          - build-flavour: release
+            output-subdir: _Comp64Release
+
     steps:
     - name: Setup variables
       uses: actions/github-script@v6
@@ -31,12 +39,13 @@ jobs:
       shell: pwsh
       run: |
         Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
-        .\build_dxvk_all_ninja.ps1
+        . .\build_common.ps1
+        PerformBuild -BuildFlavour ${{matrix.build-flavour}} -BuildSubDir ${{matrix.output-subdir}} -Backend ninja -EnableTracy false
     
     - name: Upload binaries
       uses: actions/upload-artifact@v3
       with:
-        name: dxvk-remix-${{env.GITHUB_SHA_SHORT}}
+        name: dxvk-remix-${{env.GITHUB_SHA_SHORT}}-${{matrix.build-flavour}}
         path: |
-          _Comp64*\src\d3d9\d3d9.dll
-          _Comp64*\src\d3d9\d3d9.pdb
+          ${{matrix.output-subdir}}\src\d3d9\d3d9.dll
+          ${{matrix.output-subdir}}\src\d3d9\d3d9.pdb
