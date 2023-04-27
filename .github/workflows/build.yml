@@ -47,5 +47,5 @@ jobs:
       with:
         name: dxvk-remix-${{env.GITHUB_SHA_SHORT}}-${{matrix.build-flavour}}
         path: |
-          output\*.dll
-          output\*.pdb
+          _output\*.dll
+          _output\*.pdb
